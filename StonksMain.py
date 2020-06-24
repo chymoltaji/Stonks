@@ -79,7 +79,7 @@ def processBid(bid):
     global total
     funds-=bid
     registerBid('player01', bid)
-    playerBidsList[0].append(bid)
+    playerBidsList['Bid'].append(bid)
     isLowestUnique('player01', bid)
     total=gameTotal()
 
@@ -137,7 +137,13 @@ def bidding(container):
     def updateLabels():
         avaiLabel.config(text=f'Available funds: {funds}')
         winLabel.config(text=f'Amount winnable: {total}')
-        bids.config(text=f'Your bids: {playerBidsList[0]}')
+        bids.config(text=f'''
+        Your bids----------------{playerBidsList["Bid"]}
+        Unique rank--------------{playerBidsList["Unique rank"]}
+        # of uniques lower-------{playerBidsList["# of unique bids lower"]}
+        # of uniques higher------{playerBidsList["# of unique bids higher"]}
+        # of lower bids unused---{playerBidsList["# of lower numbers unused"]}
+        ''')
 
 
     #TODO sync with win tracking
@@ -155,7 +161,13 @@ def bidding(container):
     downButton=ttk.Button(container, text='V', command=lambda: spinBox(-1))
     submit=ttk.Button(container, text=f'Bid ${bidding.bidValue}', command=lambda: send(bidding.bidValue))
     frame=ttk.Frame(container)
-    bids=ttk.Label(frame, text=f'Your bids: {playerBidsList[0]}')
+    bids=ttk.Label(frame, text=f'''
+    Your bids----------------{playerBidsList["Bid"]}
+    Unique rank--------------{playerBidsList["Unique rank"]}
+    # of uniques lower-------{playerBidsList["# of unique bids lower"]}
+    # of uniques higher------{playerBidsList["# of unique bids higher"]}
+    # of lower bids unused---{playerBidsList["# of lower numbers unused"]}
+    ''')
 
     avaiLabel.pack()
     winLabel.pack()
