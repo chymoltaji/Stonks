@@ -66,7 +66,6 @@ def isLowestUnique(p, bid):
     if len(uniqueDict[bid])==1:
         if p=='player01':
             winning=True
-            #TODO display you are winning
     elif len(uniqueDict[bid])>1:
         print('not unique')
         if uniqueDict[bid][0]=='player01':
@@ -137,6 +136,22 @@ def gameTotal():
         winTotal+=cellValue
     return int(winTotal)
 
+def processBotBit():
+    for i in range(3):
+        botPlay=botCompetition()
+        registerBid('bot',botPlay)
+        isLowestUnique('bot',botPlay)
+        i+=1
+
+#a bot that places a set of bids to compete with player
+def botCompetition():
+    decision=rand.randint(1,3)
+    if decision>1:
+        botBid=rand.choice(playerBidsList["Bid"])
+    else:
+        botBid=rand.choice(list(uniqueDict.keys()))
+    return botBid
+
 ##################################################
 ###################GUI SECTION####################
 #VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV#
@@ -178,21 +193,22 @@ def bidding(container):
         processBid(bid)
         updateLabels()
         popUpResult(winning, bid)
+        processBotBit()
 
     def tableFormat():
         length=len(playerBidsList["Bid"])
         b,u,l,h,x=[],[],[],[],[]
         for i in range(length):
-            b.append(str(playerBidsList["Bid"][i])+" "*(5-len(str(playerBidsList["Bid"][i]))))
-            u.append(str(playerBidsList["Unique rank"][i])+" "*(5-len(str(playerBidsList["Unique rank"][i]))))
-            l.append(str(playerBidsList["# of unique bids lower"][i])+" "*(5-len(str(playerBidsList["# of unique bids lower"][i]))))
-            h.append(str(playerBidsList["# of unique bids higher"][i])+" "*(5-len(str(playerBidsList["# of unique bids higher"][i]))))
-            x.append(str(playerBidsList["# of lower numbers unused"][i])+" "*(5-len(str(playerBidsList["# of lower numbers unused"][i]))))
-        b='|'.join([str(v) for v in b])
-        u='|'.join([str(v) for v in u])
-        l='|'.join([str(v) for v in l])
-        h='|'.join([str(v) for v in h])
-        x='|'.join([str(v) for v in x])
+            b.append(str(playerBidsList["Bid"][i]))
+            u.append(str(playerBidsList["Unique rank"][i]))
+            l.append(str(playerBidsList["# of unique bids lower"][i]))
+            h.append(str(playerBidsList["# of unique bids higher"][i]))
+            x.append(str(playerBidsList["# of lower numbers unused"][i]))
+        b='\t|'.join([str(v) for v in b])
+        u='\t|'.join([str(v) for v in u])
+        l='\t|'.join([str(v) for v in l])
+        h='\t|'.join([str(v) for v in h])
+        x='\t|'.join([str(v) for v in x])
         table=f'''
         Your bids----------------|{b}
         Unique rank-------------|{u}
@@ -205,8 +221,8 @@ def bidding(container):
     def updateLabels():
         avaiLabel.config(text=f'Available funds: {funds}')
         winLabel.config(text=f'Amount winnable: {total}')
-        text=tableFormat()
-        bids.config(text=text)
+        table=tableFormat()
+        bids.config(text=table)
 
     #TODO sync with win tracking
     def popUpResult(winning, bid):
@@ -215,8 +231,8 @@ def bidding(container):
         elif not winning:
             messagebox.showinfo('Information', f'Your bid of ${bid} did not win')
 
-    avaiLabel=ttk.Label(container,text=f'Available funds: {funds}')
-    winLabel=ttk.Label(container, text=f'Amount winnable: {total}')
+    avaiLabel=ttk.Label(container,text=f'Available funds: ${funds}')
+    winLabel=ttk.Label(container, text=f'Amount winnable: ${total}')
     bidLabel=ttk.Label(container, text=bidding.bidValue)
     scale=ttk.Scale(container, length=400,from_=1, to=funds, command=slider)
     upButton=ttk.Button(container, text='^', command=lambda: spinBox(1))
