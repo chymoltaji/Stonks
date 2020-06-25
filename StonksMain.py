@@ -178,16 +178,35 @@ def bidding(container):
         processBid(bid)
         updateLabels()
         popUpResult(winning, bid)
+
+    def tableFormat():
+        length=len(playerBidsList["Bid"])
+        b,u,l,h,x=[],[],[],[],[]
+        for i in range(length):
+            b.append(str(playerBidsList["Bid"][i])+" "*(5-len(str(playerBidsList["Bid"][i]))))
+            u.append(str(playerBidsList["Unique rank"][i])+" "*(5-len(str(playerBidsList["Unique rank"][i]))))
+            l.append(str(playerBidsList["# of unique bids lower"][i])+" "*(5-len(str(playerBidsList["# of unique bids lower"][i]))))
+            h.append(str(playerBidsList["# of unique bids higher"][i])+" "*(5-len(str(playerBidsList["# of unique bids higher"][i]))))
+            x.append(str(playerBidsList["# of lower numbers unused"][i])+" "*(5-len(str(playerBidsList["# of lower numbers unused"][i]))))
+        b='|'.join([str(v) for v in b])
+        u='|'.join([str(v) for v in u])
+        l='|'.join([str(v) for v in l])
+        h='|'.join([str(v) for v in h])
+        x='|'.join([str(v) for v in x])
+        table=f'''
+        Your bids----------------|{b}
+        Unique rank-------------|{u}
+        # of uniques lower------|{l}
+        # of uniques higher-----|{h}
+        # of lower bids unused--|{x}
+        '''
+        return table
+
     def updateLabels():
         avaiLabel.config(text=f'Available funds: {funds}')
         winLabel.config(text=f'Amount winnable: {total}')
-        bids.config(text=f'''
-        Your bids----------------{playerBidsList["Bid"]}
-        Unique rank--------------{playerBidsList["Unique rank"]}
-        # of uniques lower-------{playerBidsList["# of unique bids lower"]}
-        # of uniques higher------{playerBidsList["# of unique bids higher"]}
-        # of lower bids unused---{playerBidsList["# of lower numbers unused"]}
-        ''')
+        text=tableFormat()
+        bids.config(text=text)
 
     #TODO sync with win tracking
     def popUpResult(winning, bid):
