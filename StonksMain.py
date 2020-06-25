@@ -18,9 +18,10 @@ playerBidsList={
 '# of unique bids higher':[],
 '# of lower numbers unused':[]
 }
-maxBid=100
+maxBid=10000
 funds=10000
 total=0
+winning=2
 
 #resets all the game variables for a new game
 def resetGame():
@@ -30,6 +31,7 @@ def resetGame():
     global finish
     global playerBidsList
     global total
+    global winning
     uniqueDict={x:[] for x in range(1, maxBid)}
     gameover=False
     start=datetime.now()
@@ -42,6 +44,7 @@ def resetGame():
     '# of lower numbers unused':[]
     }
     total=0
+    winning=2
     with open('bidsFile.csv','w+') as bidsFile:
         bidsFile.close()
 
@@ -57,15 +60,17 @@ def registerBid(p,bid):
 def isLowestUnique(p, bid):
     global uniqueDict
     global playerBidsList
+    global winning
     uniqueDict[bid].append(p)
+    winning=2
     if len(uniqueDict[bid])==1:
         if p=='player01':
-            pass
+            winning=True
             #TODO display you are winning
     elif len(uniqueDict[bid])>1:
         print('not unique')
         if uniqueDict[bid][0]=='player01':
-            pass
+            winning=False
         print(f'informing {uniqueDict[bid][0]}')
     else:
         print('not unique')
@@ -108,8 +113,7 @@ def updateDict():
             if len(uniqueDict[k])==1:
                 countHigh+=1
         playerBidsList['# of unique bids higher'][i]=countHigh-1
-
-        
+       
 #registers and processes human bid, launches bot bids
 def processBid(bid):
     global playerBidsList
@@ -154,7 +158,6 @@ def startGame(value,container):
         refreshFrame(container)
         bidding(container)
 
-
 #creates a launch page with start game button
 def introduction(container):
     startButton=tk.Button(container, text="Start Game", command=lambda: startGame(True,container))
@@ -171,9 +174,10 @@ def bidding(container):
         bidLabel.config(text=bidding.bidValue)
         submit.config(text=f'Bid ${bidding.bidValue}')
     def send(bid):
+        global winning
         processBid(bid)
         updateLabels()
-        popUpResult(True, bid)
+        popUpResult(winning, bid)
     def updateLabels():
         avaiLabel.config(text=f'Available funds: {funds}')
         winLabel.config(text=f'Amount winnable: {total}')
@@ -184,7 +188,6 @@ def bidding(container):
         # of uniques higher------{playerBidsList["# of unique bids higher"]}
         # of lower bids unused---{playerBidsList["# of lower numbers unused"]}
         ''')
-
 
     #TODO sync with win tracking
     def popUpResult(winning, bid):
