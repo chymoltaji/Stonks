@@ -18,6 +18,7 @@ playerBidsList={
 '# of unique bids higher':[],
 '# of lower numbers unused':[]
 }
+maxBid=100
 funds=10000
 total=0
 
@@ -29,7 +30,7 @@ def resetGame():
     global finish
     global playerBidsList
     global total
-    uniqueDict={x:[] for x in range(1, 100)}
+    uniqueDict={x:[] for x in range(1, maxBid)}
     gameover=False
     start=datetime.now()
     finish=start+timedelta(minutes=1)
@@ -58,11 +59,10 @@ def isLowestUnique(p, bid):
     global playerBidsList
     uniqueDict[bid].append(p)
     if len(uniqueDict[bid])==1:
-        print('unique')
         if p=='player01':
             pass
             #TODO display you are winning
-    elif len(uniqueDict[bid])==2:
+    elif len(uniqueDict[bid])>1:
         print('not unique')
         if uniqueDict[bid][0]=='player01':
             pass
@@ -70,7 +70,46 @@ def isLowestUnique(p, bid):
     else:
         print('not unique')
 
-      
+def addBid2Dict(bid):
+    global playerBidsList
+    playerBidsList['Bid'].append(bid)
+    playerBidsList['Unique rank'].append('0')
+    playerBidsList['# of unique bids lower'].append('0')
+    playerBidsList['# of unique bids higher'].append('0')
+    playerBidsList['# of lower numbers unused'].append('0')
+
+def updateDict():
+    global playerBidsList
+    for i in range(len(playerBidsList['Bid'])):
+        bid=playerBidsList['Bid'][i]
+        countLow=0
+        countHigh=0
+        countUnused=0
+        uniqueness=len(uniqueDict[bid])
+        if uniqueness==1:
+            rank=0
+            for j in range(bid):
+                unik=len(uniqueDict[j+1])
+                if unik==1:
+                    rank+=1
+            playerBidsList['Unique rank'][i]=rank
+            #TODO make actual rank
+        elif uniqueness>1:
+            playerBidsList['Unique rank'][i]='N'
+        for j in range(bid):
+            unik=len(uniqueDict[j+1])
+            if unik==1:
+                countLow+=1
+            elif unik==0:
+                countUnused+=1
+        playerBidsList['# of unique bids lower'][i]=countLow-1
+        playerBidsList['# of lower numbers unused'][i]=countUnused
+        for k in range(int(bid),maxBid):
+            if len(uniqueDict[k])==1:
+                countHigh+=1
+        playerBidsList['# of unique bids higher'][i]=countHigh-1
+
+        
 #registers and processes human bid, launches bot bids
 def processBid(bid):
     global playerBidsList
@@ -79,8 +118,9 @@ def processBid(bid):
     global total
     funds-=bid
     registerBid('player01', bid)
-    playerBidsList['Bid'].append(bid)
     isLowestUnique('player01', bid)
+    addBid2Dict(bid)
+    updateDict()
     total=gameTotal()
 
 #sums total amount winnable in the game right now
@@ -156,7 +196,7 @@ def bidding(container):
     avaiLabel=ttk.Label(container,text=f'Available funds: {funds}')
     winLabel=ttk.Label(container, text=f'Amount winnable: {total}')
     bidLabel=ttk.Label(container, text=bidding.bidValue)
-    scale=ttk.Scale(container, length=400,from_=0, to=funds, command=slider)
+    scale=ttk.Scale(container, length=400,from_=1, to=funds, command=slider)
     upButton=ttk.Button(container, text='^', command=lambda: spinBox(1))
     downButton=ttk.Button(container, text='V', command=lambda: spinBox(-1))
     submit=ttk.Button(container, text=f'Bid ${bidding.bidValue}', command=lambda: send(bidding.bidValue))
