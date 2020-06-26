@@ -22,7 +22,43 @@ maxBid=1000
 funds=1000
 total=0
 winning=2
-DURATION=2 #minutes
+DURATION=3 #minutes
+INTROMESSAGE='''
+Dear friend, welcome to my game prototype for
+---------------------$tonks-----------------------
+$ Stonks is a player vs player live bidding game
+$ This prototype will emulate gameplay
+$ The final game will be played with real money
+$ I hope you find the game challenging and fun
+$ You will need to think strategically and use
+  the stats to win any significant amount of "money"
+$ Proto is full of bugs, I'm only interested in
+  gameplay feedback
+
+I have shared an anonymous feedback survey with you
+You honest feedback will immensely help the future
+of this project
+
+Thank you for giving Stonks a try,
+                                            -Chy
+'''
+RULES='''
+HERE ARE THE RULES OF THE GAME:
+$ The person with the lowest unique bid wins ALL
+  the cash from other players (bots in this game)
+$ E.g. if you bid $1 but a bot matches your bid
+  your bid is the lowest but not unique.
+  If you bid a unique $741, you probably won't
+  win because a bot will bid a lower unique bid
+$ All bids are final and subtracted from your funds
+$ EACH BID will reveal stats of the game, use them
+  strategically to improve your winning chances
+$ Make sure to continue bidding to update the table
+  Bots may have matched you, the ony way to find if
+  you are indeed still winning is to continue playing
+  FOR THAT, MANAGE YOUR FUNDS to last the whole game
+$ Good luck!
+'''
 
 #resets all the game variables for a new game
 def resetGame():
@@ -60,7 +96,6 @@ def registerBid(p,bid):
 #finds whether a bid is the lowest unique bid and returns list
 def isLowestUnique(p, bid):
     global uniqueDict
-    global playerBidsList
     global winning
     uniqueDict[bid].append(p)
     winning=2
@@ -115,40 +150,39 @@ def processBid(bid):
     global playerBidsList
     global uniqueDict
     global funds
-    global total
     funds-=bid
     registerBid('player01', bid)
     isLowestUnique('player01', bid)
     addBid2Dict(bid)
     updateDict()
-    total=gameTotal()
 
 #sums total amount winnable in the game right now
 def gameTotal():
+    global total
     bidsList=open('bidsFile.csv','r')
     winTotal=0
     for row in bidsList:
         col=row.split(',')
         cellValue=int(col[1])
         winTotal+=cellValue
-    return int(winTotal)
+    total=winTotal
+    bidsList.close()
 
 def processBotBit():
-    for i in range(3):
-        botPlay=botCompetition()
-        registerBid('bot',botPlay)
-        isLowestUnique('bot',botPlay)
-        i+=1
+    botPlay=botCompetition()
+    registerBid('bot',botPlay)
+    isLowestUnique('bot',botPlay)
+    print(botPlay)
 
 #a bot that places a set of bids to compete with player
 def botCompetition():
-    dec=0
+    dec=69
     maxList=range(1,100)
     decision=rand.randint(1,20)
-    if decision>15:
+    if decision>18:
         botBid=rand.choice(playerBidsList["Bid"])
     elif decision==1:
-        for i in range(maxBid):
+        for i in range(1,maxBid):
             if len(uniqueDict[i])==1:
                 dec=i
                 break
@@ -180,8 +214,12 @@ def startGame(value,container):
 
 #creates a launch page with start game button
 def introduction(container):
+    intro=ttk.Label(container, text=INTROMESSAGE)
     startButton=tk.Button(container, text="Start Game", command=lambda: startGame(True,container))
+    rules=ttk.Label(container, text=RULES)
+    intro.pack()
     startButton.pack()
+    rules.pack()
 
 def bidding(container):
     bidding.bidValue=1
@@ -198,7 +236,6 @@ def bidding(container):
         processBid(bid)
         updateLabels()
         popUpResult(winning, bid)
-        processBotBit()
 
     def tableFormat():
         length=len(playerBidsList["Bid"])
@@ -224,17 +261,19 @@ def bidding(container):
         return table
 
     def updateLabels():
+        gameTotal()
         avaiLabel.config(text=f'Available funds: ${funds}')
         winLabel.config(text=f'Amount winnable: ${total}')
         table=tableFormat()
         bids.config(text=table)
 
-    #TODO sync with win tracking
+    #TODO major issues here: check isLowestUnique
     def popUpResult(winning, bid):
-        if winning:
-            messagebox.showinfo('Information', f'Your bid is currently winning: ${total}')
-        elif not winning:
-            messagebox.showinfo('Information', f'Your bid of ${bid} did not win')
+        # if winning:
+        #     messagebox.showinfo('Information', f'Your bid is currently winning: ${total}')
+        # elif not winning:
+        #     messagebox.showinfo('Information', f'Your bid of ${bid} did not win')
+        return 0
 
     avaiLabel=ttk.Label(container,text=f'Available funds: ${funds}')
     winLabel=ttk.Label(container, text=f'Amount winnable: ${total}')
@@ -251,6 +290,8 @@ def bidding(container):
     # of uniques higher------{playerBidsList["# of unique bids higher"]}
     # of lower bids unused---{playerBidsList["# of lower numbers unused"]}
     ''')
+    rules=ttk.Label(container, text=RULES)
+    goal=ttk.Label(container, text="GOAL: Try to reach $3000")
 
     avaiLabel.pack()
     winLabel.pack()
@@ -261,7 +302,10 @@ def bidding(container):
     submit.pack()
     frame.pack()
     bids.pack()
+    goal.pack()
+    rules.pack()
 
+    
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 ###################GUI SECTION####################
 ##################################################
@@ -306,8 +350,8 @@ def main():
         elif not finish:
             timer.config(text='.............')
         
-        root.after(1000,updateTimer)
-            
+        root.after(1000,updateTimer)  
+        root.after(2000,processBotBit)
 
     timer=ttk.Label(root)
     container=ttk.Frame(root)
@@ -317,13 +361,7 @@ def main():
     introduction(container)
 
     updateTimer()
+
     root.mainloop()
 if __name__ == "__main__": 
     main()
-
-# if datetime.now()>=finish:
-#     print("#################### GAME OVER ####################")
-#     backGame.game=False
-# #clears the csv file at the end of the game
-# with open('bidsFile.csv','w',newline='') as bidsFile:
-#     bidsFile.close()
