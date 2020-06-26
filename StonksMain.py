@@ -18,10 +18,11 @@ playerBidsList={
 '# of unique bids higher':[],
 '# of lower numbers unused':[]
 }
-maxBid=10000
-funds=10000
+maxBid=1000
+funds=1000
 total=0
 winning=2
+DURATION=2 #minutes
 
 #resets all the game variables for a new game
 def resetGame():
@@ -32,10 +33,10 @@ def resetGame():
     global playerBidsList
     global total
     global winning
-    uniqueDict={x:[] for x in range(1, maxBid)}
+    uniqueDict={x:[] for x in range(1, maxBid+1)}
     gameover=False
     start=datetime.now()
-    finish=start+timedelta(minutes=1)
+    finish=start+timedelta(minutes=DURATION)
     playerBidsList={
     'Bid':[],
     'Unique rank':[],
@@ -70,9 +71,6 @@ def isLowestUnique(p, bid):
         print('not unique')
         if uniqueDict[bid][0]=='player01':
             winning=False
-        print(f'informing {uniqueDict[bid][0]}')
-    else:
-        print('not unique')
 
 def addBid2Dict(bid):
     global playerBidsList
@@ -97,21 +95,20 @@ def updateDict():
                 if unik==1:
                     rank+=1
             playerBidsList['Unique rank'][i]=rank
-            #TODO make actual rank
         elif uniqueness>1:
-            playerBidsList['Unique rank'][i]='N'
+            playerBidsList['Unique rank'][i]='X'
         for j in range(bid):
             unik=len(uniqueDict[j+1])
             if unik==1:
                 countLow+=1
             elif unik==0:
                 countUnused+=1
-        playerBidsList['# of unique bids lower'][i]=countLow-1
+        playerBidsList['# of unique bids lower'][i]=countLow
         playerBidsList['# of lower numbers unused'][i]=countUnused
         for k in range(int(bid),maxBid):
             if len(uniqueDict[k])==1:
                 countHigh+=1
-        playerBidsList['# of unique bids higher'][i]=countHigh-1
+        playerBidsList['# of unique bids higher'][i]=countHigh
        
 #registers and processes human bid, launches bot bids
 def processBid(bid):
@@ -145,11 +142,19 @@ def processBotBit():
 
 #a bot that places a set of bids to compete with player
 def botCompetition():
-    decision=rand.randint(1,3)
-    if decision>1:
+    dec=0
+    maxList=range(1,100)
+    decision=rand.randint(1,20)
+    if decision>15:
         botBid=rand.choice(playerBidsList["Bid"])
+    elif decision==1:
+        for i in range(maxBid):
+            if len(uniqueDict[i])==1:
+                dec=i
+                break
+        botBid=dec
     else:
-        botBid=rand.choice(list(uniqueDict.keys()))
+        botBid=rand.choice(maxList)
     return botBid
 
 ##################################################
@@ -179,7 +184,7 @@ def introduction(container):
     startButton.pack()
 
 def bidding(container):
-    bidding.bidValue=100
+    bidding.bidValue=1
     def slider(value):
         bidding.bidValue=int(round(float(value)))
         bidLabel.config(text=bidding.bidValue)
@@ -219,8 +224,8 @@ def bidding(container):
         return table
 
     def updateLabels():
-        avaiLabel.config(text=f'Available funds: {funds}')
-        winLabel.config(text=f'Amount winnable: {total}')
+        avaiLabel.config(text=f'Available funds: ${funds}')
+        winLabel.config(text=f'Amount winnable: ${total}')
         table=tableFormat()
         bids.config(text=table)
 
@@ -256,9 +261,6 @@ def bidding(container):
     submit.pack()
     frame.pack()
     bids.pack()
-    
-def userStats(container):
-    pass
 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 ###################GUI SECTION####################
@@ -274,16 +276,36 @@ def main():
     def updateTimer():
         global finish
         global gameover
+        global funds
         if finish:
             remainingTime=finish-datetime.now()
             remainingTime=str(remainingTime).split(':')
             remainingTime=f'{remainingTime[1]}:{str(round(float(remainingTime[2])))}'
             timer.config(text=f'Remaining time: {remainingTime}')
+            if finish<datetime.now():
+                gameover=True
+                timer.config(text='Game over')
+                winIndex=1
+                for i in range(1,maxBid):
+                    if len(uniqueDict[i])==1:
+                        winIndex=i
+                        break 
+                if uniqueDict[winIndex][0]=="player01":
+                    answer=messagebox.askyesno('Congratulations!!', f'You won the ${total} and the game with bid: ${winIndex}\nCONGRATS\nWanna play again?')
+                    funds+=total
+                else:
+                    answer=messagebox.askyesno('Sorry', f'The computer won with the lowest unique bid: ${winIndex}\nWanna play again?')
+                if answer==True:
+                    finish=False
+                    gameover=False
+                    root.destroy()
+                    main()
+                elif answer==False:
+                    root.destroy()
+                
         elif not finish:
             timer.config(text='.............')
-        elif gameover:
-            timer.config(text='Game over')
-
+        
         root.after(1000,updateTimer)
             
 
